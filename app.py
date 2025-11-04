@@ -20,18 +20,26 @@ def load_assets():
         dictionary = spacy.load('en_core_web_sm')
     except OSError:
         # Attempt to download the model at runtime (first-run cost).
+        # Use subprocess to bypass permission issues on some platforms.
+        import subprocess
+        import sys
         try:
-            from spacy.cli import download as spacy_download
-            spacy_download('en_core_web_sm')
+            st.info("Downloading spaCy English model (first run only)...")
+            subprocess.check_call([
+                sys.executable, "-m", "spacy", "download", "en_core_web_sm", "--user"
+            ], stderr=subprocess.DEVNULL)
             dictionary = spacy.load('en_core_web_sm')
         except Exception as e:
-            # If we still fail, surface a helpful message in the app and re-raise
-            st.error(
-                "spaCy model 'en_core_web_sm' is not available and automatic download failed. "
-                "If you're deploying to Streamlit Cloud include the model or allow runtime downloads. "
-                f"Error: {e}"
-            )
-            raise
+            # If download fails, try loading anyway (model might be available in a different location)
+            try:
+                dictionary = spacy.load('en_core_web_sm')
+            except Exception:
+                st.error(
+                    "⚠️ spaCy model 'en_core_web_sm' is not available and automatic download failed. "
+                    "The app cannot run without this model. "
+                    f"Error: {e}"
+                )
+                st.stop()
 
     stpwords = set(stopwords.words('english'))
     return dictionary, stpwords
