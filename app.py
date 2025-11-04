@@ -24,7 +24,7 @@ def load_assets():
         import sys
         import os
         try:
-            st.info("📥 Downloading spaCy English model (first run only, ~13MB)...")
+            # st.info("📥 Downloading spaCy English model (first run only, ~13MB)...")
             # Install to a temporary location that the app has permission to write
             temp_dir = os.path.join(os.path.expanduser("~"), ".spacy_models")
             os.makedirs(temp_dir, exist_ok=True)
@@ -41,7 +41,7 @@ def load_assets():
                 sys.path.insert(0, temp_dir)
             
             dictionary = spacy.load('en_core_web_sm')
-            st.success("✅ Model loaded successfully!")
+            # st.success("✅ Model loaded successfully!")
         except Exception as e:
             st.error(
                 "⚠️ Failed to download the spaCy model automatically. "
