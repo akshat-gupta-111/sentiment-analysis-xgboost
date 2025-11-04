@@ -19,27 +19,37 @@ def load_assets():
     try:
         dictionary = spacy.load('en_core_web_sm')
     except OSError:
-        # Attempt to download the model at runtime (first-run cost).
-        # Use subprocess to bypass permission issues on some platforms.
+        # Attempt to download the model at runtime using pip directly
         import subprocess
         import sys
+        import os
         try:
-            st.info("Downloading spaCy English model (first run only)...")
+            st.info("📥 Downloading spaCy English model (first run only, ~13MB)...")
+            # Install to a temporary location that the app has permission to write
+            temp_dir = os.path.join(os.path.expanduser("~"), ".spacy_models")
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            # Download using pip into a custom target directory
             subprocess.check_call([
-                sys.executable, "-m", "spacy", "download", "en_core_web_sm", "--user"
-            ], stderr=subprocess.DEVNULL)
+                sys.executable, "-m", "pip", "install", 
+                "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
+                "--target", temp_dir, "--quiet"
+            ])
+            
+            # Add the temp directory to Python path and try loading
+            if temp_dir not in sys.path:
+                sys.path.insert(0, temp_dir)
+            
             dictionary = spacy.load('en_core_web_sm')
+            st.success("✅ Model loaded successfully!")
         except Exception as e:
-            # If download fails, try loading anyway (model might be available in a different location)
-            try:
-                dictionary = spacy.load('en_core_web_sm')
-            except Exception:
-                st.error(
-                    "⚠️ spaCy model 'en_core_web_sm' is not available and automatic download failed. "
-                    "The app cannot run without this model. "
-                    f"Error: {e}"
-                )
-                st.stop()
+            st.error(
+                "⚠️ Failed to download the spaCy model automatically. "
+                "This is required for text preprocessing. "
+                f"\n\nError details: {e}"
+                "\n\nPlease contact support or try restarting the app."
+            )
+            st.stop()
 
     stpwords = set(stopwords.words('english'))
     return dictionary, stpwords
