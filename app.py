@@ -10,8 +10,29 @@ from scipy.sparse import csr_matrix
 # --- Preprocessing Functions (from your notebook) ---
 @st.cache_resource
 def load_assets():
+    # Ensure NLTK stopwords are available
     nltk.download('stopwords')
-    dictionary = spacy.load('en_core_web_sm')
+
+    # Try to load the small English spaCy model. On some deployment platforms
+    # (e.g. Streamlit Cloud) installing the model via requirements can fail.
+    # As a fallback, download the model at runtime if it's missing.
+    try:
+        dictionary = spacy.load('en_core_web_sm')
+    except OSError:
+        # Attempt to download the model at runtime (first-run cost).
+        try:
+            from spacy.cli import download as spacy_download
+            spacy_download('en_core_web_sm')
+            dictionary = spacy.load('en_core_web_sm')
+        except Exception as e:
+            # If we still fail, surface a helpful message in the app and re-raise
+            st.error(
+                "spaCy model 'en_core_web_sm' is not available and automatic download failed. "
+                "If you're deploying to Streamlit Cloud include the model or allow runtime downloads. "
+                f"Error: {e}"
+            )
+            raise
+
     stpwords = set(stopwords.words('english'))
     return dictionary, stpwords
 
