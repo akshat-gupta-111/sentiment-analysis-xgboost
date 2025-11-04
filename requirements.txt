@@ -1,15 +1,11 @@
-# Pinned, cloud-friendly requirements. Remove the spaCy model wheel from here
-# because model packages can be platform specific; the app will download the
-# small English model at runtime if needed.
+# Python 3.13-compatible requirements with pre-built wheels
+# (Streamlit Cloud uses Python 3.13 as of Nov 2024)
 
 streamlit==1.51.0
 spacy==3.8.7
 nltk==3.9.2
-# Use an xgboost release with broad wheel availability on Linux manylinux
-# (change if your deployment log suggests a different version).
-xgboost==1.7.6
-scikit-learn==1.3.2
-numpy==1.25.4
-scipy==1.11.3
-
-# Optional: If your app uses other packages, add them here (pandas, pyarrow, etc.)
+# Use newer versions that have Python 3.13 wheels
+xgboost>=2.0.0
+scikit-learn>=1.5.0
+numpy>=2.0.0
+scipy>=1.13.0
